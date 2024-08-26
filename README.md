@@ -1,0 +1,72 @@
+# Neovim Configuration
+
+This repository contains my Neovim configuration (`init.vim`). It leverages several plugins to enhance productivity, including CoC for language support, Airline for status line customization, and NERDTree for file exploration.
+
+## Installation
+
+### Prerequisites
+
+- **Neovim 0.5.0+**: Ensure that you have Neovim installed.
+- **Git**: Required for cloning the repository.
+- **[vim-plug](https://github.com/junegunn/vim-plug)**: A minimalist Vim plugin manager.
+
+### Steps
+
+1. **Clone this repository:**
+
+    ```bash
+    git clone https://github.com/yourusername/nvim-config.git ~/.config/nvim
+    ```
+
+2. **Install plugins:**
+
+    Open Neovim and run the following command:
+
+    ```vim
+    :PlugInstall
+    ```
+
+    This will download and install all plugins specified in the `init.vim` file.
+
+3. **Start Neovim:**
+
+    If Neovim is opened without any file arguments, NERDTree will launch automatically.
+
+## Configuration Details
+
+### Plugin Management
+
+This configuration uses `vim-plug` for plugin management. Plugins are installed in the `stdpath("data") . '/plugged'` directory. The following plugins are included:
+
+- **[CoC.nvim](https://github.com/neoclide/coc.nvim)**: Intellisense engine for Vim/Neovim, providing IDE-like features.
+- **[vim-airline](https://github.com/vim-airline/vim-airline)**: Lean & mean status/tabline for Vim that's light as air.
+- **[vim-airline-themes](https://github.com/vim-airline/vim-airline-themes)**: A collection of themes for vim-airline.
+- **[NERDTree](https://github.com/scrooloose/nerdtree)**: A file system explorer for the Vim editor.
+- **[Ayu theme](https://github.com/ayu-theme/ayu-vim)**: A simple, bright, and elegant theme for Vim.
+- **[indentLine](https://github.com/Yggdroot/indentLine)**: A plugin that displays vertical lines at each indentation level.
+
+### General Settings
+
+- **Syntax Highlighting:** Enabled if supported by your version of Neovim.
+- **Search:** `hlsearch` highlights all matches of the last search pattern.
+- **Tab and Indentation:**
+  - `ts=4`: Tab stop is set to 4 spaces.
+  - `sts=4`: Soft tab stop is set to 4 spaces.
+  - `shiftwidth=4`: The number of spaces to use for each step of (auto)indent.
+  - `autoindent`, `cindent`, `smartindent`: Various indenting options for better code readability.
+- **File Encoding:** Supports `utf-8` and `euc-kr`.
+- **Interface:**
+  - `nu`: Shows line numbers.
+  - `termguicolors`: Enables true color support for a better visual experience.
+  - `laststatus=2`: Always show the status line.
+  - `showmatch`: Highlights matching parentheses, brackets, etc.
+  - `ruler`: Shows the cursor position all the time.
+
+### Color Scheme
+
+The configuration uses the Ayu color scheme with the "dark" variant:
+
+```vim
+let ayucolor="dark"
+colorscheme ayu
+
