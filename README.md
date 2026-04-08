@@ -1,6 +1,6 @@
-# 🚀 Neovim IDE Config (Java & Multi-Language)
+# 🚀 Neovim IDE Config
 
-이 설정은 Neovim을 강력한 IDE처럼 활용하기 위한 **최소 조작 환경**을 제공합니다. Java를 주력으로 하며 Python, JS/TS, Rust, C/C++ 개발을 지원합니다.
+이 설정은 Neovim을 강력한 IDE처럼 활용하기 위한 **최소 조작 환경**을 제공합니다. Java, Python, JS/TS, Rust, C/C++ 개발을 지원합니다.
 
 ## ✨ 주요 특징
 - **Alt + r (Run)**: 현재 프로젝트의 언어를 자동 감지하여 빌드 및 실행합니다.
