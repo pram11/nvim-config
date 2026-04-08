@@ -27,3 +27,33 @@
 2. Neovim을 실행하면 `lazy.nvim`이 플러그인을 자동으로 설치합니다.
 3. 설치 후 `:Mason`을 입력하여 필요한 언어 서버를 설치합니다.
    - 권장 설치: `jdtls`, `pyright`, `typescript-language-server`, `rust-analyzer`, `clangd`
+
+   # 🚀 Neovim & IDE Vim Configuration
+
+이 저장소는 Neovim 설정뿐만 아니라, 동일한 단축키 경험을 IntelliJ 및 VS Code에서도 누릴 수 있도록 구성되어 있습니다.
+
+## 🛠 공통 핵심 단축키
+- **Alt + r**: 현재 프로젝트/파일 실행 (IDE 고유 Run 기능과 연동)
+- **gd**: 코드 정의(Definition)로 이동
+- **gi**: 인터페이스 구현체(Implementation)로 이동
+- **\r**: 심볼 이름 변경 (Rename)
+
+---
+
+## 📂 IDE별 적용 방법
+
+### 1. IntelliJ (IdeaVim)
+1. IDE에서 `IdeaVim` 플러그인을 설치합니다.
+2. 본 저장소의 `.ideavimrc` 내용을 복사하여 사용자 홈 디렉토리(`~/.ideavimrc`)에 저장합니다.
+3. IDE를 재시작하거나 `:source ~/.ideavimrc`를 입력합니다.
+
+### 2. VS Code (Vim Extension)
+1. `Vim` 확장을 설치합니다.
+2. `settings.json` 파일에 본 저장소의 `vscode-vim-settings.json` 내용을 추가합니다.
+3. 별도의 설정 없이 즉시 적용됩니다.
+
+---
+
+## 💡 개발 철학
+- **Cross-Platform Consistency**: 터미널 환경(Neovim)과 GUI 환경(IntelliJ/VS Code)에서 동일한 손맛을 유지합니다.
+- **Minimal Movement**: 커스텀 키보드 환경을 고려하여 F5 등 상단 기능키 대신 `Alt` 조합과 기본 자판 영역 내에서 모든 조작이 가능하도록 설계했습니다.

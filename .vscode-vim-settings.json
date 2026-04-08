@@ -1,0 +1,31 @@
+{
+    "vim.useSystemClipboard": true,
+    "vim.hlsearch": true,
+    "vim.handleKeys": {
+        "<C-a>": false,
+        "<C-f>": false
+    },
+    // 노멀 모드 단축키 매핑
+    "vim.normalModeKeyBindingsNonRecursive": [
+        {
+            "before": ["<M-r>"],
+            "commands": ["workbench.action.debug.run"]
+        },
+        {
+            "before": ["g", "d"],
+            "commands": ["editor.action.revealDefinition"]
+        },
+        {
+            "before": ["g", "i"],
+            "commands": ["editor.action.goToImplementation"]
+        },
+        {
+            "before": ["\\", "r"],
+            "commands": ["editor.action.rename"]
+        }
+    ],
+    // 시각적 설정
+    "editor.lineNumbers": "relative",
+    "vim.cursorStylePerMode.insert": "line",
+    "vim.cursorStylePerMode.normal": "block"
+}
