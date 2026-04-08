@@ -1,72 +1,29 @@
-# Neovim Configuration
+# 🚀 Neovim IDE Config (Java & Multi-Language)
 
-This repository contains my Neovim configuration (`init.vim`). It leverages several plugins to enhance productivity, including CoC for language support, Airline for status line customization, and NERDTree for file exploration.
+이 설정은 Neovim을 강력한 IDE처럼 활용하기 위한 **최소 조작 환경**을 제공합니다. Java를 주력으로 하며 Python, JS/TS, Rust, C/C++ 개발을 지원합니다.
 
-## Installation
+## ✨ 주요 특징
+- **Alt + r (Run)**: 현재 프로젝트의 언어를 자동 감지하여 빌드 및 실행합니다.
+- **Modern UI**: Tokyo Night 테마와 구문 강조(Treesitter)가 적용되었습니다.
+- **LSP 통합**: 자동 완성, 정의 이동, 에러 체크 기능을 기본으로 제공합니다.
+- **F5 대체 매핑**: F5 키가 없는 미니 배열 커스텀 키보드에서도 편안하게 사용할 수 있는 `Alt + r` 단축키를 채택했습니다.
 
-### Prerequisites
+## ⌨️ 핵심 단축키
+| 기능 | 단축키 | 비고 |
+|:---:|:---:|:---|
+| **빌드/실행** | `Alt + r` | 프로젝트 구조(Maven/Gradle/Cargo 등) 자동 감지 |
+| **자동 완성 선택** | `Enter` | 코드 추천 목록에서 선택 |
+| **목록 이동** | `Tab` / `S-Tab` | 완성 목록 내 상하 이동 |
+| **LSP 관리** | `:Mason` | 언어 서버 설치 및 업데이트 |
 
-- **Neovim 0.5.0+**: Ensure that you have Neovim installed.
-- **Git**: Required for cloning the repository.
-- **[vim-plug](https://github.com/junegunn/vim-plug)**: A minimalist Vim plugin manager.
+## 🛠 언어별 실행 로직
+- **Java**: Maven(`pom.xml`), Gradle(`gradlew`) 자동 감지 및 실행
+- **Rust**: Cargo(`Cargo.toml`) 감지 및 실행 지원
+- **C/C++**: `Makefile` 존재 시 활용, 단일 파일 시 자동 컴파일 실행
+- **Web/Python**: `node`, `ts-node`, `python3` 기반 즉시 실행
 
-### Steps
-
-1. **Clone this repository:**
-
-    ```bash
-    git clone https://github.com/pram11/nvim-config.git ~/.config/nvim
-    ```
-
-2. **Install plugins:**
-
-    Open Neovim and run the following command:
-
-    ```vim
-    :PlugInstall
-    ```
-
-    This will download and install all plugins specified in the `init.vim` file.
-
-3. **Start Neovim:**
-
-    If Neovim is opened without any file arguments, NERDTree will launch automatically.
-
-## Configuration Details
-
-### Plugin Management
-
-This configuration uses `vim-plug` for plugin management. Plugins are installed in the `stdpath("data") . '/plugged'` directory. The following plugins are included:
-
-- **[CoC.nvim](https://github.com/neoclide/coc.nvim)**: Intellisense engine for Vim/Neovim, providing IDE-like features.
-- **[vim-airline](https://github.com/vim-airline/vim-airline)**: Lean & mean status/tabline for Vim that's light as air.
-- **[vim-airline-themes](https://github.com/vim-airline/vim-airline-themes)**: A collection of themes for vim-airline.
-- **[NERDTree](https://github.com/scrooloose/nerdtree)**: A file system explorer for the Vim editor.
-- **[Ayu theme](https://github.com/ayu-theme/ayu-vim)**: A simple, bright, and elegant theme for Vim.
-- **[indentLine](https://github.com/Yggdroot/indentLine)**: A plugin that displays vertical lines at each indentation level.
-
-### General Settings
-
-- **Syntax Highlighting:** Enabled if supported by your version of Neovim.
-- **Search:** `hlsearch` highlights all matches of the last search pattern.
-- **Tab and Indentation:**
-  - `ts=4`: Tab stop is set to 4 spaces.
-  - `sts=4`: Soft tab stop is set to 4 spaces.
-  - `shiftwidth=4`: The number of spaces to use for each step of (auto)indent.
-  - `autoindent`, `cindent`, `smartindent`: Various indenting options for better code readability.
-- **File Encoding:** Supports `utf-8` and `euc-kr`.
-- **Interface:**
-  - `nu`: Shows line numbers.
-  - `termguicolors`: Enables true color support for a better visual experience.
-  - `laststatus=2`: Always show the status line.
-  - `showmatch`: Highlights matching parentheses, brackets, etc.
-  - `ruler`: Shows the cursor position all the time.
-
-### Color Scheme
-
-The configuration uses the Ayu color scheme with the "dark" variant:
-
-```vim
-let ayucolor="dark"
-colorscheme ayu
-
+## ⚙️ 설치 방법
+1. 이 저장소의 `init.lua`를 `~/.config/nvim/` 폴더에 복사합니다.
+2. Neovim을 실행하면 `lazy.nvim`이 플러그인을 자동으로 설치합니다.
+3. 설치 후 `:Mason`을 입력하여 필요한 언어 서버를 설치합니다.
+   - 권장 설치: `jdtls`, `pyright`, `typescript-language-server`, `rust-analyzer`, `clangd`
