@@ -21,7 +21,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- [LSP] Neovim 0.12 및 lspconfig v3.0 대응
+  -- [LSP] 0.10~0.12 모든 버전에서 에러 없는 범용 설정
   {
     "neovim/nvim-lspconfig",
     dependencies = {
@@ -31,21 +31,19 @@ require("lazy").setup({
     },
     config = function()
       require("mason").setup()
-      local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      
-      require("mason-lspconfig").setup({
-        ensure_installed = { "ts_ls", "pyright", "rust_analyzer", "clangd", "jdtls" },
-        handlers = {
-          function(server_name)
-            if server_name ~= "jdtls" then
-              -- lspconfig v3.0 스타일: 메타테이블 프레임워크 호출 없이 직접 설정
-              require("lspconfig")[server_name].setup({
-                capabilities = capabilities,
-              })
-            end
-          end,
-        },
-      })
+      local m_lsp = require("mason-lspconfig")
+      local lspconfig = require("lspconfig")
+      local caps = require('cmp_nvim_lsp').default_capabilities()
+
+      -- 자동 설치할 서버 목록
+      local servers = { "ts_ls", "pyright", "rust_analyzer", "clangd" }
+
+      m_lsp.setup({ ensure_installed = servers })
+
+      -- mason-lspconfig의 버그(handlers)를 피하기 위해 수동으로 연결
+      for _, server in ipairs(servers) do
+        lspconfig[server].setup({ capabilities = caps })
+      end
     end
   },
 
@@ -70,20 +68,21 @@ require("lazy").setup({
     end
   },
 
-  -- [Terminal] ToggleTerm (Alt+r 실행용)
+  -- [Terminal] ToggleTerm
   { "akinsho/toggleterm.nvim", version = "*", config = true },
 
-  -- [Highlight] nvim-treesitter v1.0+ 대응 (중요: configs 모듈 미사용)
+  -- [Highlight] Treesitter (0.12 및 v1.0+ 대응)
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
-      -- 2026년 v1.0+ 버전에서는 메인 모듈에서 직접 setup을 호출합니다.
-      local ts = require("nvim-treesitter")
+      -- configs 모듈 유무에 따른 유연한 로드
+      local status, ts = pcall(require, "nvim-treesitter.configs")
+      if not status then ts = require("nvim-treesitter") end
+      
       ts.setup({
         ensure_installed = { "java", "python", "javascript", "typescript", "rust", "c", "cpp", "lua" },
         highlight = { enable = true },
-        indent = { enable = true },
       })
     end
   },
@@ -93,11 +92,39 @@ require("lazy").setup({
     "folke/tokyonight.nvim", 
     lazy = false, 
     priority = 1000, 
-    config = function() 
-      vim.cmd[[colorscheme tokyonight]] 
-    end 
+    config = function() vim.cmd[[colorscheme tokyonight]] end 
   },
 })
 
 -- ========================================================================== --
---                     3. 조작 최소화: 빌드 및 실행 (Alt +
+--                     3. 빌드 및 실행 (Alt + r)                              --
+-- ========================================================================== --
+local function run_project()
+  local file_ext = vim.fn.expand('%:e')
+  local cmd = ""
+
+  if file_ext == 'java' then
+    if vim.fn.filereadable('pom.xml') == 1 then cmd = "mvn spring-boot:run"
+    elseif vim.fn.filereadable('gradlew') == 1 then cmd = "./gradlew bootRun"
+    else cmd = "javac % && java %:r" end
+  elseif file_ext == 'py' or file_ext == 'python' then cmd = "python3 %"
+  elseif file_ext == 'js' or file_ext == 'javascript' then cmd = "node %"
+  elseif file_ext == 'ts' or file_ext == 'typescript' then cmd = "ts-node %"
+  elseif file_ext == 'rs' then
+    cmd = (vim.fn.filereadable('Cargo.toml') == 1) and "cargo run" or "rustc % -o %:r && ./%:r"
+  elseif file_ext == 'c' or file_ext == 'cpp' then
+    if vim.fn.filereadable('Makefile') == 1 then cmd = "make && ./main"
+    else
+      local compiler = (file_ext == 'c') and "gcc" or "g++ -std=c++17"
+      cmd = compiler .. " % -o %:r && ./%:r"
+    end
+  end
+
+  if cmd ~= "" then
+    require('toggleterm.terminal').Terminal:new({ cmd = cmd, direction = "float", close_on_exit = false }):toggle()
+  else
+    print("실행 명령을 찾을 수 없습니다.")
+  end
+end
+
+vim.keymap.set('n', '<M-r>', run_project, { silent = true, desc = "Run" })
