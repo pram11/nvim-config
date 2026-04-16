@@ -21,29 +21,43 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- LSP 관리
-  { "williamboman/mason.nvim", config = true },
-  { "williamboman/mason-lspconfig.nvim", config = true },
-  { 
+  -- LSP 관련 플러그인
+  {
     "neovim/nvim-lspconfig",
+    dependencies = {
+      "williamboman/mason.nvim",
+      "williamboman/mason-lspconfig.nvim",
+      "hrsh7th/cmp-nvim-lsp",
+    },
     config = function()
-      local lspconfig = require('lspconfig')
+      -- Neovim 0.11+ / lspconfig v3.0.0 대응 설정
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      -- v3.0.0 대비: 각 서버를 명시적으로 루프 돌려 설정
-      local servers = { 'ts_ls', 'pyright', 'rust_analyzer', 'clangd' }
-      for _, lsp in ipairs(servers) do
-        lspconfig[lsp].setup { capabilities = capabilities }
-      end
+      
+      require("mason").setup()
+      require("mason-lspconfig").setup({
+        ensure_installed = { "ts_ls", "pyright", "rust_analyzer", "clangd", "jdtls" },
+        handlers = {
+          -- 이 방식이 lspconfig v3.0.0에서 권장하는 자동 설정 방식입니다.
+          function(server_name)
+            -- Java는 nvim-jdtls가 따로 처리하므로 무시합니다.
+            if server_name ~= "jdtls" then
+              require("lspconfig")[server_name].setup({
+                capabilities = capabilities,
+              })
+            end
+          end,
+        },
+      })
     end
   },
 
-  -- Java (jdtls는 별도 설정 없이 파일 타입에 따라 로드되는 경우가 많음)
+  -- Java 전용 (nvim-jdtls)
   { "mfussenegger/nvim-jdtls" },
 
   -- 자동 완성 (nvim-cmp)
-  { 
+  {
     "hrsh7th/nvim-cmp",
-    dependencies = { "hrsh7th/cmp-nvim-lsp", "L3MON4D3/LuaSnip", "saadparwaiz1/cmp_luasnip" },
+    dependencies = { "L3MON4D3/LuaSnip", "saadparwaiz1/cmp_luasnip" },
     config = function()
       local cmp = require('cmp')
       cmp.setup({
@@ -58,27 +72,20 @@ require("lazy").setup({
     end
   },
 
-  -- 터미널 (Alt+r 실행용)
+  -- 터미널 (Alt+r 빌드/실행용)
   { "akinsho/toggleterm.nvim", version = "*", config = true },
 
-  -- 에러 발생 지점 수정: Treesitter 설정 내재화
-  { 
-    "nvim-treesitter/nvim-treesitter", 
+  -- 구문 강조 (에러 방지 구조)
+  {
+    "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
-      -- 모듈 존재 여부 확인 후 안전하게 실행
-      local status, ts_configs = pcall(require, "nvim-treesitter.configs")
-      if not status then
-        -- 구버전이나 모듈 위치 변경 시 대응
-        status, ts_configs = pcall(require, "nvim-treesitter")
-      end
-      
-      if status and ts_configs.setup then
-        ts_configs.setup({
-          ensure_installed = { "java", "python", "javascript", "typescript", "rust", "c", "cpp", "lua" },
-          highlight = { enable = true },
-        })
-      end
+      -- nvim-treesitter 1.0+ 버전 대응
+      local configs = require("nvim-treesitter.configs")
+      configs.setup({
+        ensure_installed = { "java", "python", "javascript", "typescript", "rust", "c", "cpp", "lua" },
+        highlight = { enable = true },
+      })
     end
   },
 
@@ -95,6 +102,7 @@ local function run_project()
   local file_ext = vim.fn.expand('%:e')
   local cmd = ""
 
+  -- 언어별 실행 로직 (확장자 기반)
   if file_ext == 'java' then
     if vim.fn.filereadable('pom.xml') == 1 then cmd = "mvn spring-boot:run"
     elseif vim.fn.filereadable('gradlew') == 1 then cmd = "./gradlew bootRun"
