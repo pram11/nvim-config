@@ -21,7 +21,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- [LSP] Neovim 0.12 내장 vim.lsp.config 최적화
+  -- [LSP] Neovim 0.12 및 lspconfig v3.0 대응
   {
     "neovim/nvim-lspconfig",
     dependencies = {
@@ -33,13 +33,12 @@ require("lazy").setup({
       require("mason").setup()
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
       
-      -- 최신 mason-lspconfig 핸들러 설정 (v3.0.0 대응)
       require("mason-lspconfig").setup({
         ensure_installed = { "ts_ls", "pyright", "rust_analyzer", "clangd", "jdtls" },
         handlers = {
           function(server_name)
             if server_name ~= "jdtls" then
-              -- lspconfig 프레임워크 경고 없이 직접 설정 호출
+              -- lspconfig v3.0 스타일: 메타테이블 프레임워크 호출 없이 직접 설정
               require("lspconfig")[server_name].setup({
                 capabilities = capabilities,
               })
@@ -71,15 +70,15 @@ require("lazy").setup({
     end
   },
 
-  -- [Terminal] ToggleTerm
+  -- [Terminal] ToggleTerm (Alt+r 실행용)
   { "akinsho/toggleterm.nvim", version = "*", config = true },
 
-  -- [Highlight] nvim-treesitter (v1.0+ / 0.12 대응 수정 완료)
+  -- [Highlight] nvim-treesitter v1.0+ 대응 (중요: configs 모듈 미사용)
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
-      -- 중요: 더 이상 'nvim-treesitter.configs'를 사용하지 않습니다.
+      -- 2026년 v1.0+ 버전에서는 메인 모듈에서 직접 setup을 호출합니다.
       local ts = require("nvim-treesitter")
       ts.setup({
         ensure_installed = { "java", "python", "javascript", "typescript", "rust", "c", "cpp", "lua" },
@@ -90,19 +89,15 @@ require("lazy").setup({
   },
 
   -- [Theme] Tokyo Night
-  { "folke/tokyonight.nvim", lazy = false, priority = 1000, 
-    config = function() vim.cmd[[colorscheme tokyonight]] end 
+  { 
+    "folke/tokyonight.nvim", 
+    lazy = false, 
+    priority = 1000, 
+    config = function() 
+      vim.cmd[[colorscheme tokyonight]] 
+    end 
   },
 })
 
 -- ========================================================================== --
---                     3. 조작 최소화: 빌드 및 실행 (Alt + r)                    --
--- ========================================================================== --
-local function run_project()
-  local file_ext = vim.fn.expand('%:e')
-  local cmd = ""
-
-  -- 언어별 실행 로직
-  if file_ext == 'java' then
-    if vim.fn.filereadable('pom.xml') == 1 then cmd = "mvn spring-boot:run"
-    elseif vim.fn.
+--                     3. 조작 최소화: 빌드 및 실행 (Alt +
