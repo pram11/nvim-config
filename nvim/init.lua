@@ -1,5 +1,5 @@
 -- ========================================================================== --
---                           1. 기본 옵션 (Options)                           --
+--                            1. 기본 옵션 (Options)                             --
 -- ========================================================================== --
 vim.opt.number = true
 vim.opt.relativenumber = true
@@ -12,10 +12,11 @@ vim.opt.expandtab = true
 vim.opt.termguicolors = true
 
 -- ========================================================================== --
---                        2. 플러그인 관리 (lazy.nvim)                         --
+--                        2. 플러그인 관리 (lazy.nvim)                           --
 -- ========================================================================== --
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+-- [수정됨] Neovim 0.12 호환성을 위해 vim.loop.fs_stat 대신 vim.uv.fs_stat 사용
+if not vim.uv.fs_stat(lazypath) then
   vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
 end
 vim.opt.rtp:prepend(lazypath)
@@ -74,15 +75,23 @@ require("lazy").setup({
   -- [Highlight] Treesitter (0.12 및 v1.0+ 대응)
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main", -- [수정됨] 0.12 버전과의 충돌을 막기 위해 반드시 main 브랜치 지정
     build = ":TSUpdate",
     config = function()
-      -- configs 모듈 유무에 따른 유연한 로드
-      local status, ts = pcall(require, "nvim-treesitter.configs")
-      if not status then ts = require("nvim-treesitter") end
+      -- [수정됨] 새로운 Treesitter API 및 Neovim 0.12 내장 하이라이트 연동
+      require("nvim-treesitter").setup()
       
-      ts.setup({
-        ensure_installed = { "java", "python", "javascript", "typescript", "rust", "c", "cpp", "lua" },
-        highlight = { enable = true },
+      -- 필수 파서(c, lua, vim, vimdoc, query)를 포함하여 설치
+      require("nvim-treesitter").install({ 
+        "java", "python", "javascript", "typescript", "rust", "c", "cpp", "lua", "vim", "vimdoc", "query" 
+      })
+
+      -- [수정됨] Neovim 0.12부터는 파일 오픈 시 내장 vim.treesitter.start()를 호출하는 방식 권장
+      vim.api.nvim_create_autocmd("FileType", {
+        group = vim.api.nvim_create_augroup("treesitter_highlight", { clear = true }),
+        callback = function()
+          pcall(vim.treesitter.start)
+        end,
       })
     end
   },
