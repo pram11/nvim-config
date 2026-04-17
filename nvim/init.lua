@@ -1,5 +1,5 @@
 -- ========================================================================== --
---                            1. 기본 옵션 (Options)                             --
+--                               1. 기본 옵션 (Options)                          --
 -- ========================================================================== --
 vim.opt.number = true
 vim.opt.relativenumber = true
@@ -12,16 +12,16 @@ vim.opt.expandtab = true
 vim.opt.termguicolors = true
 
 -- ========================================================================== --
---                        2. 플러그인 관리 (lazy.nvim)                           --
+--                             2. 플러그인 관리 (lazy.nvim)                      --
 -- ========================================================================== --
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.uv.fs_stat(lazypath) then
+if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
 end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- [LSP] 0.11~0.12 최신 네이티브 방식 대응 완료
+  -- [LSP]
   {
     "neovim/nvim-lspconfig",
     dependencies = {
@@ -32,25 +32,14 @@ require("lazy").setup({
     config = function()
       require("mason").setup()
       local m_lsp = require("mason-lspconfig")
+      local lspconfig = require("lspconfig")
       local caps = require('cmp_nvim_lsp').default_capabilities()
 
       local servers = { "ts_ls", "pyright", "rust_analyzer", "clangd" }
-
       m_lsp.setup({ ensure_installed = servers })
 
-      -- Nvim 0.12 (Nightly) 최신 규격 대응 (Deprecation 에러 해결)
       for _, server in ipairs(servers) do
-        if vim.lsp.config then
-          pcall(require, "lspconfig.configs." .. server)
-          vim.lsp.config[server] = vim.tbl_deep_extend(
-            "force",
-            vim.lsp.config[server] or {},
-            { capabilities = caps }
-          )
-          vim.lsp.enable(server)
-        else
-          require("lspconfig")[server].setup({ capabilities = caps })
-        end
+        lspconfig[server].setup({ capabilities = caps })
       end
     end
   },
@@ -79,52 +68,18 @@ require("lazy").setup({
   -- [Terminal] ToggleTerm
   { "akinsho/toggleterm.nvim", version = "*", config = true },
 
-  -- [Highlight] Treesitter (0.12 및 v1.0+ 대응)
+  -- [Highlight] Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
-    branch = "main",
     build = ":TSUpdate",
     config = function()
-      require("nvim-treesitter").setup()
-      require("nvim-treesitter").install({ 
-        "java", "python", "javascript", "typescript", "rust", "c", "cpp", "lua", "vim", "vimdoc", "query" 
+      local status, ts = pcall(require, "nvim-treesitter.configs")
+      if not status then ts = require("nvim-treesitter") end
+      
+      ts.setup({
+        ensure_installed = { "java", "python", "javascript", "typescript", "rust", "c", "cpp", "lua" },
+        highlight = { enable = true },
       })
-
-      vim.api.nvim_create_autocmd("FileType", {
-        group = vim.api.nvim_create_augroup("treesitter_highlight", { clear = true }),
-        callback = function()
-          pcall(vim.treesitter.start)
-        end,
-      })
-    end
-  },
-
-  -- [File Explorer] nvim-tree (좌측 디렉토리 트리)
-  {
-    "nvim-tree/nvim-tree.lua",
-    dependencies = {
-      "nvim-tree/nvim-web-devicons",
-    },
-    config = function()
-      -- Neovim 기본 탐색기인 netrw를 비활성화 (nvim-tree 공식 권장 사항)
-      vim.g.loaded_netrw = 1
-      vim.g.loaded_netrwPlugin = 1
-
-      require("nvim-tree").setup({
-        view = {
-          width = 30,
-          side = "left",
-        },
-        renderer = {
-          group_empty = true,
-        },
-        filters = {
-          dotfiles = false,
-        },
-      })
-
-      -- Ctrl + e 로 탐색기 열기/닫기
-      vim.keymap.set('n', '<C-e>', ':NvimTreeToggle<CR>', { silent = true, desc = "Toggle File Explorer" })
     end
   },
 
@@ -135,10 +90,43 @@ require("lazy").setup({
     priority = 1000, 
     config = function() vim.cmd[[colorscheme tokyonight]] end 
   },
+
+  -- [File Explorer] nvim-tree (새로 추가된 부분)
+  {
+    "nvim-tree/nvim-tree.lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require("nvim-tree").setup({
+        sync_root_with_cwd = true,
+        respect_buf_cwd = true,
+        update_focused_file = {
+          enable = true,
+          update_root = true,
+        },
+        view = {
+          width = 30,
+          side = "left",
+        },
+      })
+
+      -- 새 탭을 열 때 nvim-tree를 자동으로 실행하는 설정
+      vim.api.nvim_create_autocmd("TabNewEntered", {
+        callback = function()
+          require("nvim-tree.api").tree.open()
+        end,
+      })
+    end,
+  },
 })
 
 -- ========================================================================== --
---                     3. 빌드 및 실행 (Alt + r)                              --
+--                             3. 키 매핑 (Keymaps)                            --
+-- ========================================================================== --
+-- 탐색기 토글 (Ctrl + n)
+vim.keymap.set('n', '<C-n>', ':NvimTreeToggle<CR>', { silent = true })
+
+-- ========================================================================== --
+--                             4. 빌드 및 실행 (Alt + r)                        --
 -- ========================================================================== --
 local function run_project()
   local file_ext = vim.fn.expand('%:e')
