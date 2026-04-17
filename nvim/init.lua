@@ -15,14 +15,13 @@ vim.opt.termguicolors = true
 --                             2. 플러그인 관리 (lazy.nvim)                      --
 -- ========================================================================== --
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-local uv = vim.uv or vim.loop
-if not uv.fs_stat(lazypath) then
+if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
 end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- [LSP] 0.11+ 에러 없는 확실한 설정
+  -- [LSP] 사용자님의 원래 소스코드로 완전 복구
   {
     "neovim/nvim-lspconfig",
     dependencies = {
@@ -33,15 +32,14 @@ require("lazy").setup({
     config = function()
       require("mason").setup()
       local m_lsp = require("mason-lspconfig")
+      local lspconfig = require("lspconfig")
       local caps = require('cmp_nvim_lsp').default_capabilities()
 
       local servers = { "ts_ls", "pyright", "rust_analyzer", "clangd" }
       m_lsp.setup({ ensure_installed = servers })
 
-      -- [수정] 가장 안전한 루프 방식으로 회귀
-      -- require('lspconfig') 전체를 변수에 담지 않고 직접 호출하여 경고 회피
       for _, server in ipairs(servers) do
-        require('lspconfig')[server].setup({ capabilities = caps })
+        lspconfig[server].setup({ capabilities = caps })
       end
     end
   },
@@ -92,7 +90,7 @@ require("lazy").setup({
     config = function() vim.cmd[[colorscheme tokyonight]] end 
   },
 
-  -- [File Explorer] nvim-tree
+  -- [File Explorer] nvim-tree (새로 추가된 탐색기)
   {
     "nvim-tree/nvim-tree.lua",
     dependencies = { "nvim-tree/nvim-web-devicons" },
@@ -104,7 +102,7 @@ require("lazy").setup({
         view = { width = 30, side = "left" },
       })
 
-      -- 새 탭을 열 때 nvim-tree 자동 실행 오토커맨드
+      -- 새 탭을 열 때 nvim-tree가 자동으로 열리도록 설정
       vim.api.nvim_create_autocmd("TabNewEntered", {
         callback = function() require("nvim-tree.api").tree.open() end,
       })
