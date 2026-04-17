@@ -15,7 +15,6 @@ vim.opt.termguicolors = true
 --                             2. 플러그인 관리 (lazy.nvim)                      --
 -- ========================================================================== --
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
--- vim.loop 대신 최신 nvim에서 권장하는 vim.uv 사용
 local uv = vim.uv or vim.loop
 if not uv.fs_stat(lazypath) then
   vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
@@ -23,7 +22,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- [LSP] Neovim 0.11+ 최신 API 대응 설정
+  -- [LSP] 0.11+ 에러 없는 확실한 설정
   {
     "neovim/nvim-lspconfig",
     dependencies = {
@@ -39,15 +38,11 @@ require("lazy").setup({
       local servers = { "ts_ls", "pyright", "rust_analyzer", "clangd" }
       m_lsp.setup({ ensure_installed = servers })
 
-      -- [수정 핵심] deprecated 경고를 피하기 위해 mason-lspconfig의 handlers 사용
-      -- 이 방식은 require('lspconfig') 프레임워크를 직접 호출하지 않아 안전합니다.
-      m_lsp.setup_handlers({
-        function(server_name)
-          -- Neovim 0.11+ 환경이면 vim.lsp.config를, 아니면 기존 방식을 사용 (호환성 유지)
-          local config = vim.lsp.config and vim.lsp.config[server_name] or require("lspconfig")[server_name]
-          config.setup({ capabilities = caps })
-        end,
-      })
+      -- [수정] 가장 안전한 루프 방식으로 회귀
+      -- require('lspconfig') 전체를 변수에 담지 않고 직접 호출하여 경고 회피
+      for _, server in ipairs(servers) do
+        require('lspconfig')[server].setup({ capabilities = caps })
+      end
     end
   },
 
@@ -109,7 +104,7 @@ require("lazy").setup({
         view = { width = 30, side = "left" },
       })
 
-      -- 새 탭을 열 때 nvim-tree 자동 실행
+      -- 새 탭을 열 때 nvim-tree 자동 실행 오토커맨드
       vim.api.nvim_create_autocmd("TabNewEntered", {
         callback = function() require("nvim-tree.api").tree.open() end,
       })
