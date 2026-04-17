@@ -15,7 +15,6 @@ vim.opt.termguicolors = true
 --                             2. 플러그인 관리 (lazy.nvim)                      --
 -- ========================================================================== --
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
--- Neovim 0.12에서는 vim.loop 대신 vim.uv를 사용합니다.
 local uv = vim.uv or vim.loop
 if not uv.fs_stat(lazypath) then
   vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
@@ -23,7 +22,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- [LSP] Neovim 0.12+ 전용 설정
+  -- [LSP] Neovim 0.12+ 전용 설정 (경고 및 에러 해결)
   {
     "neovim/nvim-lspconfig",
     dependencies = {
@@ -38,13 +37,10 @@ require("lazy").setup({
 
       local servers = { "ts_ls", "pyright", "rust_analyzer", "clangd" }
 
-      -- [수정 핵심] 0.12 버전의 lspconfig deprecation 경고를 완벽히 피하는 법:
-      -- m_lsp.setup_handlers 대신 setup 내부의 handlers 속성을 사용합니다.
       m_lsp.setup({
         ensure_installed = servers,
         handlers = {
           function(server_name)
-            -- require('lspconfig').server.setup 방식이 아닌 인덱싱 방식을 사용합니다.
             require('lspconfig')[server_name].setup({
               capabilities = caps,
             })
@@ -78,14 +74,16 @@ require("lazy").setup({
   -- [Terminal] ToggleTerm
   { "akinsho/toggleterm.nvim", version = "*", config = true },
 
-  -- [Highlight] Treesitter
+  -- [Highlight] Treesitter (사용자님의 원래 코드로 완벽 복구)
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     config = function()
-      -- Neovim 0.12 호환성을 위해 configs를 명시적으로 로드
-      local configs = require("nvim-treesitter.configs")
-      configs.setup({
+      -- 원본 코드: configs 모듈 유무에 따른 유연한 예외 처리 복구
+      local status, ts = pcall(require, "nvim-treesitter.configs")
+      if not status then ts = require("nvim-treesitter") end
+      
+      ts.setup({
         ensure_installed = { "java", "python", "javascript", "typescript", "rust", "c", "cpp", "lua" },
         highlight = { enable = true },
       })
@@ -106,7 +104,6 @@ require("lazy").setup({
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
       require("nvim-tree").setup({
-        -- 탭 간 동기화를 위한 핵심 옵션
         sync_root_with_cwd = true,
         respect_buf_cwd = true,
         update_focused_file = {
@@ -119,7 +116,6 @@ require("lazy").setup({
         },
       })
 
-      -- [자동화] 새 탭을 열 때마다 탐색기를 자동으로 열어 모든 탭에서 공통 사용 느낌을 줌
       vim.api.nvim_create_autocmd("TabNewEntered", {
         callback = function()
           require("nvim-tree.api").tree.open()
@@ -132,7 +128,6 @@ require("lazy").setup({
 -- ========================================================================== --
 --                             3. 키 매핑 (Keymaps)                            --
 -- ========================================================================== --
--- 탐색기 토글 (Ctrl + n)
 vim.keymap.set('n', '<C-n>', ':NvimTreeToggle<CR>', { silent = true })
 
 -- ========================================================================== --
