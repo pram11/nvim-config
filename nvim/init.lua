@@ -132,4 +132,26 @@ local function run_project()
 
   if file_ext == 'java' then
     if vim.fn.filereadable('pom.xml') == 1 then cmd = "mvn spring-boot:run"
-    elseif vim.fn.filereadable('gradlew')
+    elseif vim.fn.filereadable('gradlew') == 1 then cmd = "./gradlew bootRun"
+    else cmd = "javac % && java %:r" end
+  elseif file_ext == 'py' or file_ext == 'python' then cmd = "python3 %"
+  elseif file_ext == 'js' or file_ext == 'javascript' then cmd = "node %"
+  elseif file_ext == 'ts' or file_ext == 'typescript' then cmd = "ts-node %"
+  elseif file_ext == 'rs' then
+    cmd = (vim.fn.filereadable('Cargo.toml') == 1) and "cargo run" or "rustc % -o %:r && ./%:r"
+  elseif file_ext == 'c' or file_ext == 'cpp' then
+    if vim.fn.filereadable('Makefile') == 1 then cmd = "make && ./main"
+    else
+      local compiler = (file_ext == 'c') and "gcc" or "g++ -std=c++17"
+      cmd = compiler .. " % -o %:r && ./%:r"
+    end
+  end
+
+  if cmd ~= "" then
+    require('toggleterm.terminal').Terminal:new({ cmd = cmd, direction = "float", close_on_exit = false }):toggle()
+  else
+    print("실행 명령을 찾을 수 없습니다.")
+  end
+end
+
+vim.keymap.set('n', '<M-r>', run_project, { silent = true, desc = "Run" })
